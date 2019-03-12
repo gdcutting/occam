@@ -7,6 +7,8 @@ RA implements a number of different search algorithms:
 * up or down searches of disjoint models
 * chain search
 
+Start with pseudo-code version of full down search (here's the c++ to work from):
+
 ```
 Model **SearchFullDown::search(Model *start) {
     //-- worst case - need a list with a slot for each relation in start model,
