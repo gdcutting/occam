@@ -1,5 +1,11 @@
 # RA Algorithms
 
+## Key objects in RA
+For background on RA, see the [RA overview](reconstructibility-analysis-overview.md). That document is somewhat brief but contains links to more detailed introductions.
+
+Very briefly, here is a quick recap of key RA objects:
+* Model - a calculated probability distribution over some sets of relations. Model distributions are calculated to maximize entropy while preserving constraints imposed by the marginal probabilities in the data. So, for example, given data ABCD, a candidate model might be AB:CD; this model would be calculated by maximizing entropy while preserving, separately, the marginal probabilities of the AB and CD projections.
+
 ## Search
 OCCAM implements a number of different search algorithms:
 * full searches starting from the top or bottom of the lattice
