@@ -1,38 +1,43 @@
 # RA Algorithms
 
 ## Search
-RA implements a number of different search algorithms:
+OCCAM implements a number of different search algorithms:
 * full searches starting from the top or bottom of the lattice
 * up or down searches of loopless models (variable- and state-based versions)
 * up or down searches of disjoint models
 * chain search
 
-Start with pseudo-code version of full down search (here's the c++ to work from):
+for a total of nine different search procedures. Not of all of them are equally common in OCCAM usage, so we will focus first on specifying the most commonly used searches (full up and down, and variable-based loopless).
+
+All search algorithms implement a [beam search](https://en.wikipedia.org/wiki/Beam_search),
+an optimization of [best first search](https://en.wikipedia.org/wiki/Best-first_search) that reduces its memory requirements.
+
+### Full Down Search
+
+Location: cpp/search.cpp(23-47)
+Input: _start_, a model to begin the search from.
 
 ```
-Model **SearchFullDown::search(Model *start) {
-    //-- worst case - need a list with a slot for each relation in start model,
-    //-- plus one for null termination of list
-    int relcount = start->getRelationCount();
-    Model **models = new Model *[relcount + 1];
-    Model *model;
-    int i, slot;
-    memset(models, 0, (relcount + 1) * sizeof(Model*));
-    for (i = 0, slot = 0; i < relcount; i++) {
-        Relation *rel = start->getRelation(i);
-        //-- skip trivial relations
-        if (rel->getVariableCount() == 1)
-            continue;
-
-        //-- for directed systems, skip any relations which only have independent vars
-        if (isDirected() && rel->isIndependentOnly())
-            continue;
-
-        //-- otherwise this will generate a child relation
-        model = ((VBMManager *) manager)->makeChildModel(start, i, 0, makeProjection());
-        if (((VBMManager *) manager)->applyFilter(model))
-            models[slot++] = model;
-    }
-    return models;
-}
+**SearchFullDown(start)**
+1  relcount = start.getRelationCount()
+2  models = new Model[relcount + 1]
+3  allocate to _models_ a memory block of size (relcount + 1) * sizeof(Model), filled with zeros
+4  slot = 0
+5  for i = 0 to relcount - 1
+6      start_rel = start.getRelation(i)
+7      if (start_rel.getVariableCount() == 1)
+8          continue
+9      if system is directed and start_rel.isIndependentOnly()
+10           continue
+11      new_model = makeChildModel(start, i, o, makeProjection())
+12      if model passes filter requirements
+13          models[slot] = new_model
+14          slot = slot + 1
+15  return models
 ```
+
+This procedure first sets _relcount_ to the count of relations in the starting model (1). Then it creates a Model array (with length (_relcount_ + 1)) to hold the search results (2), and allocates memory for that array (3). Slot, which is used as an array index for adding models to the _models_ array, is initialized to 0 (4). Then the procedure iterates from 0 to (_relcount_ - 1) (for loop at line 5), and does the following at each iteration:
+* if the variable count in the input relation is 1, do nothing (continue)
+* if the system is directed and the input relation contains only independent variables, do nothing
+* if neither of these sets of conditions is met, generate a new child model, new_model. If new_model passes some requirements specified by a filter (further note needed), add it to _models_ (the array containing models returned by the search)
+When the for loop completes, _models_ is populated with zero or more models, the results of the search.
